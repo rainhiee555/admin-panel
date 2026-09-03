@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN MANAGEMENT SYSTEM - ระบบจัดการแอดมิน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+        * { font-family: 'Kanit', sans-serif; }
+        body { background-color: #f8fafc; }
+        .sidebar-active { 
+            background: linear-gradient(90deg, #ec4899 0%, #a855f7 100%); 
+            color: white !important; 
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.3);
+        }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- ==================== PAGE: DISCORD LOGIN ==================== -->
+    <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
+            <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg shadow-purple-500/30">
+                AD
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">ADMIN PANEL</h2>
+            <p class="text-sm text-slate-400 mb-6">เข้าสู่ระบบจัดการผู้ดูแลเซิร์ฟเวอร์</p>
+            
+            <button onclick="loginWithDiscord()" class="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white py-3.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-3 transition shadow-lg shadow-indigo-500/20">
+                <i class="fa-brands fa-discord text-xl"></i> เข้าสู่ระบบด้วย Discord
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col justify-between p-4 z-10 shrink-0 overflow-y-auto">
+        <div>
+            <!-- Header Logo -->
+            <div class="flex items-center gap-3 px-2 py-3 border-b border-gray-100 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                    AD
+                </div>
+                <div>
+                    <h1 class="font-bold text-gray-800 text-sm tracking-wide">ADMIN PANEL</h1>
+                    <p class="text-xs text-purple-600 font-medium">ระบบจัดการผู้ดูแล</p>
+                </div>
+            </div>
+
+            <!-- Profile Widget Mini -->
+            <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-xl mb-4">
+                <img id="sidebarAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" class="w-9 h-9 rounded-full border-2 border-purple-300 object-cover">
+                <div class="overflow-hidden">
+                    <p id="sidebarName" class="text-xs font-bold text-gray-800 truncate">Admin | System</p>
+                    <span class="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-semibold">ผู้ดูแลระบบ</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1">
+                <button onclick="switchTab('profile')" id="nav-profile" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-user-gear text-base w-5"></i> โปรไฟล์
+                </button>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-chart-pie text-base w-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('shift')" id="nav-shift" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium sidebar-active">
+                    <i class="fa-solid fa-clock-rotate-left text-base w-5"></i> เช็กเข้า-ออกเวร
+                </button>
+                <button onclick="switchTab('shift-history')" id="nav-shift-history" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-business-time text-base w-5"></i> ประวัติการเข้าเวร
+                </button>
+                <button onclick="switchTab('leave')" id="nav-leave" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-calendar-minus text-base w-5"></i> แจ้งลา
+                </button>
+                <button onclick="switchTab('leave-manage')" id="nav-leave-manage" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-file-circle-check text-base w-5"></i> จัดการคำขอลา
+                </button>
+                <button onclick="switchTab('members')" id="nav-members" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-xl hover:bg-purple-50 transition text-sm font-medium">
+                    <i class="fa-solid fa-users-gear text-base w-5"></i> จัดการสมาชิก
+                </button>
+            </nav>
+        </div>
+
+        <!-- Logout Button -->
+        <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition text-sm font-medium w-full mt-4">
+            <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+        </button>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-1 p-8 overflow-y-auto">
+
+        <!-- 1. PROFILE -->
+        <section id="page-profile" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">จัดการโปรไฟล์</h2>
+                <p class="text-sm text-purple-700">ข้อมูลส่วนตัวและสิทธิ์การใช้งาน</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center">
+                    <img id="profileAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" class="w-24 h-24 rounded-full border-4 border-purple-200 mb-4 object-cover">
+                    <h3 id="profileName" class="font-bold text-lg text-gray-800">Admin | System</h3>
+                    <span class="bg-purple-100 text-purple-700 text-xs px-3 py-1 rounded-full font-medium mt-1">★ ผู้ดูแลระบบ (Admin)</span>
+                    <p id="profileDiscordId" class="text-xs text-gray-400 mt-4">Discord ID: -</p>
+                </div>
+
+                <div class="md:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-id-card text-purple-600"></i> ข้อมูลส่วนตัว</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อผู้ใช้ (Global Name) *</label>
+                            <input id="inputProfileName" type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Discord ID (อ้างอิงจากระบบ)</label>
+                            <input id="inputDiscordId" type="text" disabled class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-sm font-mono">
+                        </div>
+                        <button onclick="saveProfile()" class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2.5 rounded-xl font-medium text-sm shadow-md hover:opacity-90 transition">บันทึกข้อมูล</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DASHBOARD -->
+        <section id="page-dashboard" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">Dashboard</h2>
+                <p class="text-sm text-purple-700">ข้อมูลภาพรวมการปฏิบัติงานทั้งหมด</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400">การแจ้งลาทั้งหมด</p>
+                        <h3 id="statLeaveCount" class="text-2xl font-bold text-gray-800 mt-1">0 <span class="text-xs font-normal text-gray-400">รายการ</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-file-lines"></i></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400">ประวัติเข้าเวรสะสม</p>
+                        <h3 id="statShiftCount" class="text-2xl font-bold text-gray-800 mt-1">0 <span class="text-xs font-normal text-gray-400">ครั้ง</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-clock"></i></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400">สมาชิกในระบบ</p>
+                        <h3 id="statCaseCount" class="text-2xl font-bold text-gray-800 mt-1">0 <span class="text-xs font-normal text-gray-400">คน</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SHIFT CLOCK -->
+        <section id="page-shift" class="page-section active">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">เช็กเข้า-ออกปฏิบัติหน้าที่ Admin</h2>
+                <p class="text-sm text-purple-700">บันทึกเวลาปฏิบัติงานและรับเคสดูแลเซิร์ฟเวอร์</p>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-2xl mb-8 shadow-lg flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-white/20 rounded-xl"><i class="fa-solid fa-calendar-day text-2xl"></i></div>
+                    <div>
+                        <p class="text-xs opacity-80" id="currentDate">-</p>
+                        <p class="text-3xl font-bold tracking-wider" id="liveClock">00:00:00</p>
+                    </div>
+                </div>
+                <i class="fa-regular fa-clock text-4xl opacity-40"></i>
+            </div>
+
+            <div class="bg-white p-10 rounded-2xl shadow-sm border border-purple-50 text-center flex flex-col items-center">
+                <button id="toggleShiftBtn" onclick="promptConfirmShift()" class="w-24 h-24 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg transition-transform transform active:scale-95 mb-4">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+                <h3 class="text-xl font-bold text-gray-800" id="shiftStatus">ไม่ได้ปฏิบัติหน้าที่ (Off-Duty)</h3>
+                <p class="text-xs text-gray-400 mt-1 mb-4" id="startTimeText">กดปุ่มด้านบนเพื่อเริ่มปฏิบัติหน้าที่ Admin</p>
+                
+                <div class="bg-purple-50 text-purple-700 px-6 py-2 rounded-full font-mono font-bold text-sm">
+                    ⏱️ รวมเวลาทำงาน: <span id="timer">00:00:00</span> ชั่วโมง
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SHIFT HISTORY LOG -->
+        <section id="page-shift-history" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-purple-900">ประวัติการเข้า-ออกเวร</h2>
+                    <p class="text-sm text-purple-700">บันทึกเวลาการปฏิบัติหน้าที่ย้อนหลังของ Admin ทุกท่าน</p>
+                </div>
+                <button onclick="clearShiftHistory()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash"></i> ล้างประวัติ
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-purple-50/50 text-purple-900 text-xs font-bold border-b border-gray-100">
+                            <th class="p-4">ผู้เข้าเวร</th>
+                            <th class="p-4">เวลาเริ่ม (On-Duty)</th>
+                            <th class="p-4">เวลาออก (Off-Duty)</th>
+                            <th class="p-4">ระยะเวลาที่ใช้</th>
+                            <th class="p-4">วันที่บันทึก</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shiftHistoryTableBody" class="divide-y divide-gray-100 text-xs">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. LEAVE REQUEST -->
+        <section id="page-leave" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">แจ้งลา</h2>
+                <p class="text-sm text-purple-700">ส่งคำขอลาปฏิบัติหน้าที่ Admin</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-paper-plane text-purple-600"></i> ส่งคำขอลา</h3>
+                <form id="leaveForm" onsubmit="submitLeave(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">ประเภทการลา *</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label id="lblFullDay" onclick="setLeaveType('FULL')" class="border-2 border-purple-500 bg-purple-50 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-purple-700">
+                                <i class="fa-solid fa-calendar-day"></i> ลาทั้งวัน
+                            </label>
+                            <label id="lblPartTime" onclick="setLeaveType('PART')" class="border-2 border-gray-100 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-gray-600 hover:bg-gray-50">
+                                <i class="fa-solid fa-clock"></i> ลาบางช่วงเวลา
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">วันที่เริ่มลา *</label>
+                            <input id="leaveStartDate" type="date" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">วันที่สิ้นสุด *</label>
+                            <input id="leaveEndDate" type="date" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">เหตุผลการลา *</label>
+                        <textarea id="leaveReason" rows="3" required placeholder="ระบุเหตุผลการลา เช่น ติดภารกิจส่วนตัว, ป่วย" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 text-sm"></textarea>
+                    </div>
+
+                    <button type="submit" class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2.5 rounded-xl font-medium text-sm shadow-md hover:opacity-90 transition">ยื่นคำขอลา</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 6. LEAVE MANAGEMENT & APPROVAL -->
+        <section id="page-leave-manage" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">จัดการคำขอลาปฏิบัติหน้าที่</h2>
+                <p class="text-sm text-purple-700">ตรวจสอบและอนุมัติใบลาของทีมงาน</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-purple-50/50 text-purple-900 text-xs font-bold border-b border-gray-100">
+                            <th class="p-4">ผู้ขอลา</th>
+                            <th class="p-4">ประเภท</th>
+                            <th class="p-4">ช่วงวันที่ลา</th>
+                            <th class="p-4">เหตุผล</th>
+                            <th class="p-4">สถานะ</th>
+                            <th class="p-4 text-center">การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveTableBody" class="divide-y divide-gray-100 text-xs">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 7. MEMBERS -->
+        <section id="page-members" class="page-section">
+            <div class="bg-gradient-to-r from-purple-200 via-purple-100 to-pink-100 p-6 rounded-2xl mb-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-purple-900">จัดการสมาชิกทีม Admin</h2>
+                    <p class="text-sm text-purple-700">รายชื่อผู้ดูแลระบบในเซิร์ฟเวอร์</p>
+                </div>
+                <button onclick="openMemberModal()" class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-2.5 rounded-xl font-medium text-xs shadow-md hover:opacity-90 transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> เพิ่มสมาชิกใหม่
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-purple-50/50 text-purple-900 text-xs font-bold border-b border-gray-100">
+                            <th class="p-4">ผู้ใช้</th>
+                            <th class="p-4">DISCORD ID</th>
+                            <th class="p-4">สิทธิ์</th>
+                            <th class="p-4">สถานะ</th>
+                            <th class="p-4 text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody" class="divide-y divide-gray-100 text-xs">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODAL: SHIFT CONFIRMATION ==================== -->
+    <div id="shiftConfirmModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center relative">
+            <div id="confirmModalIcon" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 id="confirmModalTitle" class="font-bold text-lg text-gray-800 mb-1">ยืนยันการทำรายการ</h3>
+            <p id="confirmModalDesc" class="text-xs text-gray-500 mb-6">คุณต้องการเข้าหรือออกปฏิบัติหน้าที่ใช่หรือไม่?</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 transition">
+                    ยกเลิก
+                </button>
+                <button id="confirmShiftActionBtn" onclick="executeShiftToggle()" class="flex-1 py-2.5 rounded-xl text-white text-xs font-medium transition shadow-md">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: SHIFT RESULT NOTIFICATION ==================== -->
+    <div id="shiftModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center relative">
+            <div id="shiftModalIcon" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md">
+            </div>
+            <h3 id="shiftModalTitle" class="font-bold text-lg text-gray-800 mb-1">แจ้งเตือนสถานะ</h3>
+            <p id="shiftModalDesc" class="text-xs text-gray-500 mb-4">รายละเอียดเวลาเข้า/ออกเวร</p>
+            
+            <div id="shiftModalBody" class="bg-gray-50 p-3 rounded-xl text-left text-xs space-y-2 mb-5 border border-gray-100 font-mono">
+            </div>
+
+            <button onclick="closeShiftModal()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition shadow-md">
+                รับทราบ
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD/EDIT MEMBER ==================== -->
+    <div id="memberModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h3 id="modalTitle" class="font-bold text-gray-800 text-base">เพิ่มสมาชิก Admin ใหม่</h3>
+                <button onclick="closeMemberModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="memberForm" onsubmit="saveMember(event)" class="space-y-4">
+                <input type="hidden" id="memberEditId">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อสมาชิก / Global Name *</label>
+                    <input type="text" id="memberNameInput" required placeholder="เช่น Admin | Wynter" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Discord ID *</label>
+                    <input type="text" id="memberDiscordIdInput" required placeholder="เช่น 123456789012345678" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs font-mono focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">URL รูปโปรไฟล์ (ถ้ามี)</label>
+                    <input type="url" id="memberAvatarInput" placeholder="https://..." class="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-purple-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">สิทธิ์การใช้งาน</label>
+                        <select id="memberRoleInput" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-purple-500">
+                            <option value="Super Admin">Super Admin</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Moderator">Moderator</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">สถานะ</label>
+                        <select id="memberStatusInput" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-purple-500">
+                            <option value="ACTIVE">อนุญาต</option>
+                            <option value="SUSPENDED">ระงับสิทธิ์</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" onclick="closeMemberModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-xs hover:bg-gray-50 transition">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        const CLIENT_ID = '1543270454540902550'; 
+        const DISCORD_WEBHOOK_URL = 'https://canary.discord.com/api/webhooks/1544984505276694528/C_3xV9XlumU83nwmZxv_DOP_K0g0TsCSWNglDT_CDz2EDkwA1SGcAJXeACNa2CIqrocl';
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+        let currentUser = null;
+        let activeLeaveType = 'FULL';
+        let currentShiftStartTime = null;
+        let shiftTimerInterval = null;
+
+        // Data Storage
+        let memberList = JSON.parse(localStorage.getItem('admin_members')) || [
+            { id: '123456789012345678', name: 'Admin | System', avatar: 'https://cdn.discordapp.com/embed/avatars/0.png', role: 'Super Admin', status: 'ACTIVE' }
+        ];
+        let shiftLogs = JSON.parse(localStorage.getItem('admin_shift_logs')) || [];
+        let leaveRequests = JSON.parse(localStorage.getItem('admin_leaves')) || [
+            { id: 1, name: 'Trust Issue', type: 'ลาทั้งวัน', dateRange: '2026-09-03 ถึง 2026-09-04', reason: 'ลาป่วย 1 วันครับ', status: 'APPROVED' }
+        ];
+
+        // --- INIT & CLOCK ---
+        window.onload = function() {
+            checkAuthCallback();
+            startLiveClock();
+            renderTables();
+            updateStats();
+        };
+
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('liveClock').innerText = now.toLocaleTimeString('th-TH');
+                document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }, 1000);
+        }
+
+        // --- DISCORD WEBHOOK ---
+        function sendDiscordWebhook(embedData) {
+            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === 'YOUR_DISCORD_WEBHOOK_URL_HERE') return;
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embeds: [embedData] })
+            }).catch(err => console.error('Discord Webhook Error:', err));
+        }
+
+        // --- DISCORD OAUTH2 ---
+        function loginWithDiscord() {
+            if (CLIENT_ID === 'YOUR_DISCORD_CLIENT_ID_HERE') {
+                alert('กรุณาใส่ Client ID ในโค้ดก่อนใช้งานครับ');
+                return;
+            }
+            window.location.href = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+        }
+
+        function checkAuthCallback() {
+            const hash = window.location.hash;
+            let token = localStorage.getItem('discord_token');
+
+            if (hash.includes('access_token')) {
+                const params = new URLSearchParams(hash.substring(1));
+                token = params.get('access_token');
+                localStorage.setItem('discord_token', token);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (token) {
+                fetch('https://discord.com/api/users/@me', {
+                    headers: { authorization: `Bearer ${token}` }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Token expired');
+                    return res.json();
+                })
+                .then(user => {
+                    currentUser = user;
+                    setupUserProfile(user);
+                    document.getElementById('loginScreen').style.display = 'none';
+                })
+                .catch(err => {
+                    console.error('Session expired or invalid:', err);
+                    localStorage.removeItem('discord_token');
+                    document.getElementById('loginScreen').style.display = 'flex';
+                });
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+            }
+        }
+
+        function setupUserProfile(user) {
+            const name = user.global_name || user.username;
+            const avatar = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+            document.getElementById('sidebarName').innerText = name;
+            document.getElementById('sidebarAvatar').src = avatar;
+            document.getElementById('profileName').innerText = name;
+            document.getElementById('profileAvatar').src = avatar;
+            document.getElementById('profileDiscordId').innerText = `Discord ID: ${user.id}`;
+            document.getElementById('inputProfileName').value = name;
+            document.getElementById('inputDiscordId').value = user.id;
+        }
+
+        function logout() {
+            localStorage.removeItem('discord_token');
+            location.reload();
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('inputProfileName').value;
+            if (newName) {
+                document.getElementById('sidebarName').innerText = newName;
+                document.getElementById('profileName').innerText = newName;
+                alert('บันทึกข้อมูลส่วนตัวสำเร็จแล้ว');
+            }
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('sidebar-active'));
+
+            const targetSection = document.getElementById(`page-${tabName}`);
+            const targetBtn = document.getElementById(`nav-${tabName}`);
+
+            if (targetSection) targetSection.classList.add('active');
+            if (targetBtn) targetBtn.classList.add('sidebar-active');
+        }
+
+        // --- SHIFT CLOCK LOGIC ---
+        function promptConfirmShift() {
+            const modal = document.getElementById('shiftConfirmModal');
+            const icon = document.getElementById('confirmModalIcon');
+            const title = document.getElementById('confirmModalTitle');
+            const desc = document.getElementById('confirmModalDesc');
+            const btn = document.getElementById('confirmShiftActionBtn');
+
+            if (!currentShiftStartTime) {
+                icon.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md bg-emerald-100 text-emerald-600";
+                icon.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket"></i>`;
+                title.innerText = "ยืนยันเข้าปฏิบัติหน้าที่";
+                desc.innerText = "คุณกำลังจะเริ่มบันทึกเวลาปฏิบัติงาน On-Duty";
+                btn.className = "flex-1 py-2.5 rounded-xl text-white text-xs font-medium transition shadow-md bg-emerald-500 hover:bg-emerald-600";
+            } else {
+                icon.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md bg-rose-100 text-rose-600";
+                icon.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
+                title.innerText = "ยืนยันออกปฏิบัติหน้าที่";
+                desc.innerText = "คุณต้องการสรุปและสิ้นสุดการเข้าเวรนี้หรือไม่?";
+                btn.className = "flex-1 py-2.5 rounded-xl text-white text-xs font-medium transition shadow-md bg-rose-500 hover:bg-rose-600";
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('shiftConfirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function executeShiftToggle() {
+            closeConfirmModal();
+            const btn = document.getElementById('toggleShiftBtn');
+            const statusText = document.getElementById('shiftStatus');
+            const startTimeText = document.getElementById('startTimeText');
+            const userName = currentUser ? (currentUser.global_name || currentUser.username) : 'Admin System';
+
+            if (!currentShiftStartTime) {
+                // START SHIFT
+                currentShiftStartTime = new Date();
+                btn.className = "w-24 h-24 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg transition-transform transform active:scale-95 mb-4 animate-pulse";
+                btn.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
+                statusText.innerText = "กำลังปฏิบัติหน้าที่ (On-Duty)";
+                statusText.className = "text-xl font-bold text-emerald-600";
+                startTimeText.innerText = `เริ่มปฏิบัติงานเมื่อ: ${currentShiftStartTime.toLocaleTimeString('th-TH')}`;
+
+                shiftTimerInterval = setInterval(updateTimer, 1000);
+
+                openShiftModal("เข้าเวรสำเร็จ", "คุณได้เริ่มปฏิบัติหน้าที่เรียบร้อยแล้ว", `
+                    <div><b>ผู้ปฏิบัติงาน:</b> ${userName}</div>
+                    <div><b>เวลาเริ่ม:</b> ${currentShiftStartTime.toLocaleTimeString('th-TH')}</div>
+                `, "emerald");
+
+                sendDiscordWebhook({
+                    title: "🟢 แจ้งเตือน: เข้าปฏิบัติหน้าที่ (On-Duty)",
+                    color: 3066993,
+                    fields: [
+                        { name: "ผู้ปฏิบัติงาน", value: userName, inline: true },
+                        { name: "เวลาที่เริ่ม", value: currentShiftStartTime.toLocaleTimeString('th-TH'), inline: true }
+                    ],
+                    timestamp: new Date()
+                });
+
+            } else {
+                // END SHIFT
+                const endTime = new Date();
+                const diffMs = endTime - currentShiftStartTime;
+                const diffHrs = Math.floor(diffMs / 3600000);
+                const diffMins = Math.floor((diffMs % 3600000) / 60000);
+                const diffSecs = Math.floor((diffMs % 60000) / 1000);
+                const durationStr = `${String(diffHrs).padStart(2,'0')}:${String(diffMins).padStart(2,'0')}:${String(diffSecs).padStart(2,'0')}`;
+
+                const logEntry = {
+                    id: Date.now(),
+                    name: userName,
+                    startTime: currentShiftStartTime.toLocaleTimeString('th-TH'),
+                    endTime: endTime.toLocaleTimeString('th-TH'),
+                    duration: durationStr,
+                    date: endTime.toLocaleDateString('th-TH')
+                };
+
+                shiftLogs.unshift(logEntry);
+                localStorage.setItem('admin_shift_logs', JSON.stringify(shiftLogs));
+                renderTables();
+                updateStats();
+
+                openShiftModal("ออกเวรสำเร็จ", "บันทึกระยะเวลาการปฏิบัติหน้าที่เรียบร้อย", `
+                    <div><b>ผู้ปฏิบัติงาน:</b> ${userName}</div>
+                    <div><b>เวลาออกเวร:</b> ${endTime.toLocaleTimeString('th-TH')}</div>
+                    <div><b>รวมเวลาปฏิบัติงาน:</b> ${durationStr} ชั่วโมง</div>
+                `, "purple");
+
+                sendDiscordWebhook({
+                    title: "🔴 แจ้งเตือน: ออกปฏิบัติหน้าที่ (Off-Duty)",
+                    color: 15158332,
+                    fields: [
+                        { name: "ผู้ปฏิบัติงาน", value: userName, inline: true },
+                        { name: "ระยะเวลาทำงาน", value: durationStr, inline: true }
+                    ],
+                    timestamp: new Date()
+                });
+
+                // RESET UI
+                clearInterval(shiftTimerInterval);
+                currentShiftStartTime = null;
+                btn.className = "w-24 h-24 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg transition-transform transform active:scale-95 mb-4";
+                btn.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket"></i>`;
+                statusText.innerText = "ไม่ได้ปฏิบัติหน้าที่ (Off-Duty)";
+                statusText.className = "text-xl font-bold text-gray-800";
+                startTimeText.innerText = "กดปุ่มด้านบนเพื่อเริ่มปฏิบัติหน้าที่ Admin";
+                document.getElementById('timer').innerText = "00:00:00";
+            }
+        }
+
+        function updateTimer() {
+            if (!currentShiftStartTime) return;
+            const diffMs = new Date() - currentShiftStartTime;
+            const diffHrs = Math.floor(diffMs / 3600000);
+            const diffMins = Math.floor((diffMs % 3600000) / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            document.getElementById('timer').innerText = `${String(diffHrs).padStart(2,'0')}:${String(diffMins).padStart(2,'0')}:${String(diffSecs).padStart(2,'0')}`;
+        }
+
+        function openShiftModal(title, desc, bodyHtml, theme) {
+            const modal = document.getElementById('shiftModal');
+            const icon = document.getElementById('shiftModalIcon');
+            document.getElementById('shiftModalTitle').innerText = title;
+            document.getElementById('shiftModalDesc').innerText = desc;
+            document.getElementById('shiftModalBody').innerHTML = bodyHtml;
+
+            if(theme === 'emerald') {
+                icon.className = "w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+            } else {
+                icon.className = "w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-md";
+                icon.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i>`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeShiftModal() {
+            const modal = document.getElementById('shiftModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function clearShiftHistory() {
+            if (confirm('คุณต้องการล้างประวัติการเข้าเวรทั้งหมดใช่หรือไม่?')) {
+                shiftLogs = [];
+                localStorage.setItem('admin_shift_logs', JSON.stringify(shiftLogs));
+                renderTables();
+                updateStats();
+            }
+        }
+
+        // --- LEAVE SYSTEM ---
+        function setLeaveType(type) {
+            activeLeaveType = type;
+            const fullBtn = document.getElementById('lblFullDay');
+            const partBtn = document.getElementById('lblPartTime');
+
+            if (type === 'FULL') {
+                fullBtn.className = "border-2 border-purple-500 bg-purple-50 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-purple-700";
+                partBtn.className = "border-2 border-gray-100 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-gray-600 hover:bg-gray-50";
+            } else {
+                partBtn.className = "border-2 border-purple-500 bg-purple-50 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-purple-700";
+                fullBtn.className = "border-2 border-gray-100 p-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer font-medium text-sm text-gray-600 hover:bg-gray-50";
+            }
+        }
+
+        function submitLeave(e) {
+            e.preventDefault();
+            const startDate = document.getElementById('leaveStartDate').value;
+            const endDate = document.getElementById('leaveEndDate').value;
+            const reason = document.getElementById('leaveReason').value;
+            const userName = currentUser ? (currentUser.global_name || currentUser.username) : 'Admin System';
+
+            const newLeave = {
+                id: Date.now(),
+                name: userName,
+                type: activeLeaveType === 'FULL' ? 'ลาทั้งวัน' : 'ลาบางช่วงเวลา',
+                dateRange: `${startDate} ถึง ${endDate}`,
+                reason: reason,
+                status: 'PENDING'
+            };
+
+            leaveRequests.unshift(newLeave);
+            localStorage.setItem('admin_leaves', JSON.stringify(leaveRequests));
+
+            sendDiscordWebhook({
+                title: "📝 แจ้งเตือน: มีคำขอลาใหม่",
+                color: 15844367,
+                fields: [
+                    { name: "ผู้ขอลา", value: userName, inline: true },
+                    { name: "ประเภท", value: newLeave.type, inline: true },
+                    { name: "ช่วงวันที่", value: newLeave.dateRange },
+                    { name: "เหตุผล", value: reason }
+                ],
+                timestamp: new Date()
+            });
+
+            document.getElementById('leaveForm').reset();
+            alert('ยื่นคำขอลาสำเร็จเรียบร้อยแล้ว');
+            renderTables();
+            updateStats();
+            switchTab('leave-manage');
+        }
+
+        function updateLeaveStatus(id, status) {
+            const item = leaveRequests.find(l => l.id === id);
+            if (item) {
+                item.status = status;
+                localStorage.setItem('admin_leaves', JSON.stringify(leaveRequests));
+                renderTables();
+            }
+        }
+
+        // เพิ่มฟังก์ชันลบคำขอลา
+        function deleteLeave(id) {
+            if (confirm('คุณต้องการลบรายการแจ้งลานี้ใช่หรือไม่?')) {
+                leaveRequests = leaveRequests.filter(l => l.id !== id);
+                localStorage.setItem('admin_leaves', JSON.stringify(leaveRequests));
+                renderTables();
+                updateStats();
+            }
+        }
+
+        // --- MEMBER MANAGEMENT ---
+        function openMemberModal(editId = null) {
+            const modal = document.getElementById('memberModal');
+            const title = document.getElementById('modalTitle');
+            document.getElementById('memberForm').reset();
+            document.getElementById('memberEditId').value = '';
+
+            if (editId) {
+                const member = memberList.find(m => m.id === String(editId));
+                if (member) {
+                    title.innerText = "แก้ไขข้อมูลสมาชิก";
+                    document.getElementById('memberEditId').value = member.id;
+                    document.getElementById('memberNameInput').value = member.name;
+                    document.getElementById('memberDiscordIdInput').value = member.id;
+                    document.getElementById('memberAvatarInput').value = member.avatar || '';
+                    document.getElementById('memberRoleInput').value = member.role;
+                    document.getElementById('memberStatusInput').value = member.status;
+                }
+            } else {
+                title.innerText = "เพิ่มสมาชิก Admin ใหม่";
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeMemberModal() {
+            const modal = document.getElementById('memberModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveMember(e) {
+            e.preventDefault();
+            const editId = document.getElementById('memberEditId').value;
+            const name = document.getElementById('memberNameInput').value;
+            const discordId = document.getElementById('memberDiscordIdInput').value;
+            const avatar = document.getElementById('memberAvatarInput').value || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            const role = document.getElementById('memberRoleInput').value;
+            const status = document.getElementById('memberStatusInput').value;
+
+            if (editId) {
+                const index = memberList.findIndex(m => m.id === String(editId));
+                if (index !== -1) {
+                    memberList[index] = { id: discordId, name, avatar, role, status };
+                }
+            } else {
+                memberList.push({ id: discordId, name, avatar, role, status });
+            }
+
+            localStorage.setItem('admin_members', JSON.stringify(memberList));
+            closeMemberModal();
+            renderTables();
+            updateStats();
+        }
+
+        function deleteMember(id) {
+            if (confirm('คุณต้องการลบสมาชิกรายนี้ใช่หรือไม่?')) {
+                memberList = memberList.filter(m => m.id !== String(id));
+                localStorage.setItem('admin_members', JSON.stringify(memberList));
+                renderTables();
+                updateStats();
+            }
+        }
+
+        // --- RENDER TABLES & STATS ---
+        function renderTables() {
+            // 1. Shift Logs Table
+            const shiftBody = document.getElementById('shiftHistoryTableBody');
+            if (shiftBody) {
+                if (shiftLogs.length === 0) {
+                    shiftBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">ยังไม่มีประวัติการเข้าเวร</td></tr>`;
+                } else {
+                    shiftBody.innerHTML = shiftLogs.map(log => `
+                        <tr class="hover:bg-purple-50/30 transition">
+                            <td class="p-4 font-bold text-gray-800">${log.name}</td>
+                            <td class="p-4 text-emerald-600 font-mono">${log.startTime}</td>
+                            <td class="p-4 text-rose-500 font-mono">${log.endTime}</td>
+                            <td class="p-4 font-bold font-mono text-purple-600">${log.duration} ชม.</td>
+                            <td class="p-4 text-gray-400">${log.date}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            // 2. Leave Requests Table (เพิ่มปุ่มลบถังขยะเรียบร้อย)
+            const leaveBody = document.getElementById('leaveTableBody');
+            if (leaveBody) {
+                if (leaveRequests.length === 0) {
+                    leaveBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีรายการขอลา</td></tr>`;
+                } else {
+                    leaveBody.innerHTML = leaveRequests.map(leave => {
+                        let statusBadge = `<span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">รออนุมัติ</span>`;
+                        if (leave.status === 'APPROVED') statusBadge = `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">อนุมัติแล้ว</span>`;
+                        if (leave.status === 'REJECTED') statusBadge = `<span class="bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full font-medium">ปฏิเสธ</span>`;
+
+                        return `
+                            <tr class="hover:bg-purple-50/30 transition">
+                                <td class="p-4 font-bold text-gray-800">${leave.name}</td>
+                                <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px] font-semibold">${leave.type}</span></td>
+                                <td class="p-4 text-gray-600 font-mono">${leave.dateRange}</td>
+                                <td class="p-4 text-gray-500 max-w-xs truncate">${leave.reason}</td>
+                                <td class="p-4">${statusBadge}</td>
+                                <td class="p-4 text-center">
+                                    <div class="flex justify-center items-center gap-1">
+                                        ${leave.status === 'PENDING' ? `
+                                            <button onclick="updateLeaveStatus(${leave.id}, 'APPROVED')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg transition text-[10px] flex items-center gap-1"><i class="fa-solid fa-check"></i>อนุมัติ</button>
+                                            <button onclick="updateLeaveStatus(${leave.id}, 'REJECTED')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg transition text-[10px] flex items-center gap-1"><i class="fa-solid fa-xmark"></i>ไม่อนุมัติ</button>
+                                        ` : ''}
+                                        <button onclick="deleteLeave(${leave.id})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition" title="ลบรายการ">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // 3. Member Table
+            const memberBody = document.getElementById('memberTableBody');
+            if (memberBody) {
+                if (memberList.length === 0) {
+                    memberBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">ยังไม่มีรายการสมาชิก</td></tr>`;
+                } else {
+                    memberBody.innerHTML = memberList.map(member => `
+                        <tr class="hover:bg-purple-50/30 transition">
+                            <td class="p-4 flex items-center gap-3">
+                                <img src="${member.avatar}" class="w-8 h-8 rounded-full object-cover border border-purple-200">
+                                <span class="font-bold text-gray-800">${member.name}</span>
+                            </td>
+                            <td class="p-4 font-mono text-gray-500">${member.id}</td>
+                            <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px] font-semibold">${member.role}</span></td>
+                            <td class="p-4">
+                                ${member.status === 'ACTIVE' 
+                                    ? '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium text-[10px]">เปิดใช้งาน</span>' 
+                                    : '<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-medium text-[10px]">ระงับสิทธิ์</span>'}
+                            </td>
+                            <td class="p-4 text-center space-x-1">
+                                <button onclick="openMemberModal('${member.id}')" class="text-purple-600 hover:bg-purple-50 p-1.5 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteMember('${member.id}')" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('statLeaveCount').innerHTML = `${leaveRequests.length} <span class="text-xs font-normal text-gray-400">รายการ</span>`;
+            document.getElementById('statShiftCount').innerHTML = `${shiftLogs.length} <span class="text-xs font-normal text-gray-400">ครั้ง</span>`;
+            document.getElementById('statCaseCount').innerHTML = `${memberList.length} <span class="text-xs font-normal text-gray-400">คน</span>`;
+        }
+    </script>
+</body>
+</html>
